@@ -67,6 +67,10 @@ func (l *line)do(i int, c *Context) bool{
 	return false
 }
 
+func (l *line)size() int{
+	return len(l.nodes)
+}
+
 func (l *line)init(handlers ...HandlerFunc){
 	l.nodes = make([]*node, 0)
 	if len(handlers) >= int(abortIndex){
