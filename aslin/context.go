@@ -31,7 +31,7 @@ func (c *Context) init(params Params, l *line){
 func (c *Context) reset() {
 	c.params = make(Params)
 	c.line = nil
-	c.index = -1
+	c.index = 0
 	c.Errors = c.Errors[0:0]
 }
 
@@ -66,6 +66,19 @@ func (c *Context) Next() {
 			return
 		}
 		n.in(c)
+	}
+}
+
+// Repeat should be used only inside middleware.
+// It repeats workflow from line i, but keeps all parameters
+func (c *Context) Repeat(i int){
+	if !c.IsAborted(){
+		if i < c.line.size(){
+			c.index = int8(i)
+			c.line.do(int(c.index), c)
+		}else{
+			c.Abort()
+		}
 	}
 }
 
