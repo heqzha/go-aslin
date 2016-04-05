@@ -6,7 +6,7 @@ import (
 	"testing"
 	"github.com/stretchr/testify/assert"
 
-	"go-aslin/aslin"
+	"github.com/heqzha/go-aslin/aslin"
 )
 
 func funcA(c *aslin.Context){
