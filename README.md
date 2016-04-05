@@ -1,4 +1,4 @@
-#Aslin - A Sequence Workflow Framework for go
+#Aslin - A Sequence Workflow Framework for Golang
 
 ## Example
 
@@ -8,7 +8,8 @@ package main
 import(
     "fmt"
     "errors"
-    "go-aslin/aslin"
+
+    "github.com/heqzha/go-aslin/aslin"
 )
 
 func funcA(c *aslin.Context){
