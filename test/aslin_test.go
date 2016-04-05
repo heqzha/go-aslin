@@ -37,6 +37,26 @@ func funcC(c *aslin.Context){
 	fmt.Printf("line: %d, out:%d\n", id, p)
 }
 
+func funcD(c *aslin.Context){
+	max := c.MustGet("repeat_max").(int)
+	repeat, existed := c.Get("repeat")
+	if existed{
+		if repeat.(int) < max{
+			defer c.Repeat(1)
+			repeat = repeat.(int) + 1
+			c.Set("repeat", repeat)
+		}else{
+			defer c.Abort()
+		}
+	}else{
+		c.Set("repeat", 0)
+		defer c.Repeat(1)
+	}
+	id := c.MustGet("id").(int)
+	p := c.MustGet("p")
+	fmt.Printf("line: %d, out:%d\n", id, p)
+}
+
 func TestAslin(t *testing.T){
 	// Create new line
 	lIndex1 := aslin.InstFactory.NewLine(funcA, funcB, funcC)
@@ -48,6 +68,28 @@ func TestAslin(t *testing.T){
 	})
 	aslin.InstFactory.Start(lIndex2, aslin.Params{
 		"id":2,
+	})
+
+	// Clear all lines
+	defer aslin.InstFactory.Destory()
+
+	for {
+		//Wait for all lines stopped
+		if aslin.InstFactory.IsAllStop(){
+			break
+		}
+	}
+	assert.True(t, true, "True is true")
+}
+
+func TestAslinRepeat(t *testing.T){
+	// Create new line
+	lIndex1 := aslin.InstFactory.NewLine(funcA, funcB, funcD)
+
+	// Set parameters and run
+	aslin.InstFactory.Start(lIndex1, aslin.Params{
+		"id":1,
+		"repeat_max":5,
 	})
 
 	// Clear all lines
