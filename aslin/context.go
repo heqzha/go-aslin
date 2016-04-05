@@ -10,38 +10,44 @@ type Params map[string]interface{}
 
 type Context struct {
 	params   Params
-	line AsLine
+	line *line
 	index    int8
 
 	Errors   errors
-	Accepted []string
 }
 
 /************************************/
 /********** CONTEXT CREATION ********/
 /************************************/
 
+func (c *Context) init(params Params, l *line){
+	c.params = params
+	c.line = l
+	c.index = 0
+	//Set first input params
+	c.line.do(int(c.index), c)
+}
+
 func (c *Context) reset() {
 	c.params = make(Params)
 	c.line = nil
 	c.index = -1
 	c.Errors = c.Errors[0:0]
-	c.Accepted = nil
 }
 
 // Copy returns a copy of the current context that can be safely used outside the request's scope.
 // This have to be used then the context has to be passed to a goroutine.
 func (c *Context) Copy() *Context {
-	var cp Context = *c
+	var cp = *c
 	cp.index = abortIndex
 	cp.line = nil
 	return &cp
 }
 
-// LineName returns the main line's name. For example if the line is "handleGetUsers()", this
+// HandlerName returns the current handler of line's name. For example if the handler is "handleGetUsers()", this
 // function will return "main.handleGetUsers"
-func (c *Context) LineName() string {
-	return nameOfFunction(c.line.Last())
+func (c *Context) HandlerName() string {
+	return nameOfFunction(c.line.getHandler(int(c.index)))
 }
 
 /************************************/
@@ -52,10 +58,14 @@ func (c *Context) LineName() string {
 // It executes the pending handlers in the chain inside the calling handler.
 // See example in github.
 func (c *Context) Next() {
-	c.index++
-	s := int8(len(c.handlers))
-	for ; c.index < s; c.index++ {
-		c.handlers[c.index](c)
+	if !c.IsAborted(){
+		n, end := c.line.next(int(c.index))
+		if end{
+			// Reach the end of line
+			c.Abort()
+			return
+		}
+		n.in(c)
 	}
 }
 
@@ -69,24 +79,40 @@ func (c *Context) IsAborted() bool {
 // authorization fails (ex: the password does not match), call Abort to ensure the remaining handlers
 // for this request are not called.
 func (c *Context) Abort() {
+	c.line.stop()
 	c.index = abortIndex
-}
-
-// AbortWithStatus calls `Abort()` and writes the headers with the specified status code.
-// For example, a failed attempt to authentificate a request could use: context.AbortWithStatus(401).
-func (c *Context) AbortWithStatus(code int) {
-	c.Status(code)
-	c.Abort()
 }
 
 // AbortWithError calls `AbortWithStatus()` and `Error()` internally. This method stops the chain, writes the status code and
 // pushes the specified error to `c.Errors`.
 // See Context.Error() for more details.
-func (c *Context) AbortWithError(code int, err error) *Error {
-	c.AbortWithStatus(code)
+func (c *Context) AbortWithError(err error) *Error {
+	c.Abort()
 	return c.Error(err)
 }
 
+/************************************/
+/********* ERROR MANAGEMENT *********/
+/************************************/
+
+// Attaches an error to the current context. The error is pushed to a list of errors.
+// It's a good idea to call Error for each error that occurred during the resolution of a request.
+// A middleware can be used to collect all the errors
+// and push them to a database together, print a log, or append it in the HTTP response.
+func (c *Context) Error(err error) *Error {
+	var parsedError *Error
+	switch err.(type) {
+	case *Error:
+		parsedError = err.(*Error)
+	default:
+		parsedError = &Error{
+			Err:  err,
+			Type: ErrorTypePrivate,
+		}
+	}
+	c.Errors = append(c.Errors, parsedError)
+	return parsedError
+}
 
 /************************************/
 /******** METADATA MANAGEMENT********/
@@ -111,7 +137,7 @@ func (c *Context) Get(key string) (value interface{}, exists bool) {
 	return
 }
 
-// Returns the value for the given key if it exists, otherwise it panics.
+// MustGet returns the value for the given key if it exists, otherwise it panics.
 func (c *Context) MustGet(key string) interface{} {
 	if value, exists := c.Get(key); exists {
 		return value
