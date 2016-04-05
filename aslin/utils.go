@@ -6,9 +6,10 @@ import (
 	"reflect"
 )
 
+// H
 type H map[string]interface{}
 
-// Allows type H to be used with xml.Marshal
+// MarshalXML allows type H to be used with xml.Marshal
 func (h H) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	start.Name = xml.Name{
 		Space: "",
@@ -32,6 +33,7 @@ func (h H) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
 	return nil
 }
 
+// nameOfFunction get name of function
 func nameOfFunction(f interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()
 }

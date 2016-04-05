@@ -9,6 +9,7 @@ import (
 	"reflect"
 )
 
+// ErrorType describes error types
 type ErrorType uint64
 
 const(
@@ -20,6 +21,7 @@ const(
 )
 
 type (
+	//Error is error struct with ErrorType and Meta data
 	Error struct {
 		Err  error
 		Type ErrorType
