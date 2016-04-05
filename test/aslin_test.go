@@ -14,6 +14,7 @@ func funcA(c *aslin.Context){
 	id := c.MustGet("id").(int)
 	fmt.Printf("line: %d\n", id)
 
+	//Go to next process
 	c.Next()
 }
 
@@ -26,11 +27,13 @@ func funcB(c *aslin.Context){
 		c.Set("p", intP)
 		c.Next()
 	}else{
+		// Abort current process
 		fmt.Println(c.AbortWithError(errors.New("No params")))
 	}
 }
 
 func funcC(c *aslin.Context){
+	//Don't forget call c.Abort() to finish workflow
 	defer c.Abort()
 	id := c.MustGet("id").(int)
 	p := c.MustGet("p")
@@ -42,10 +45,12 @@ func funcD(c *aslin.Context){
 	repeat, existed := c.Get("repeat")
 	if existed{
 		if repeat.(int) < max{
+			//Repeat workflow at funcB
 			defer c.Repeat(1)
 			repeat = repeat.(int) + 1
 			c.Set("repeat", repeat)
 		}else{
+			// Reach the max repeat times, abort workflow
 			defer c.Abort()
 		}
 	}else{
@@ -75,7 +80,7 @@ func TestAslin(t *testing.T){
 
 	for {
 		//Wait for all lines stopped
-		if aslin.InstFactory.IsAllStop(){
+		if aslin.InstFactory.AreAllStop(){
 			break
 		}
 	}
@@ -97,7 +102,7 @@ func TestAslinRepeat(t *testing.T){
 
 	for {
 		//Wait for all lines stopped
-		if aslin.InstFactory.IsAllStop(){
+		if aslin.InstFactory.AreAllStop(){
 			break
 		}
 	}

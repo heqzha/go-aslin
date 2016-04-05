@@ -45,8 +45,8 @@ func (f *Factory)IsStop(i int) bool{
 	return true
 }
 
-// IsAllStop return false, if anyone of lines is not stopped
-func (f *Factory)IsAllStop() bool{
+// AreAllStop return false, if anyone of lines is not stopped
+func (f *Factory)AreAllStop() bool{
 	for _, c :=  range f.contexts{
 		if c != nil && !c.IsAborted(){
 			return false

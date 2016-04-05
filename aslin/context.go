@@ -70,7 +70,7 @@ func (c *Context) Next() {
 }
 
 // Repeat should be used only inside middleware.
-// It repeats workflow from line i, but keeps all parameters
+// It repeats workflow from process i, but keeps all parameters
 func (c *Context) Repeat(i int){
 	if !c.IsAborted(){
 		if i < c.line.size(){
