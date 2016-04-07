@@ -21,7 +21,11 @@ type Context struct {
 /************************************/
 
 func (c *Context) init(params Params, l *line){
-	c.params = params
+	if params == nil{
+		c.params = make(Params)
+	}else{
+		c.params = params
+	}
 	c.line = l
 	c.index = 0
 	//Set first input params
