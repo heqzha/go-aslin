@@ -201,9 +201,9 @@ func funcE(c *aslin.Context){
 		p, existed := c.Get("p")
 		if existed{
 			id := c.MustGet("id").(int)
+			p := p.(int) + 1
 			fmt.Printf("funcE - line: %d, p:%d\n", id, p)
-			intP := p.(int) + 1
-			c.Set("p", intP)
+			c.Set("p", p)
 			c.Pass()
 		}else{
 			// Abort current process
@@ -244,13 +244,13 @@ func main(){
 ```
     Output:
     funcA - line: 1
-    funcE - line: 1, p:0
-    funcF - line: 1, out:1
     funcE - line: 1, p:1
-    funcF - line: 1, out:2
+    funcF - line: 1, out:1
     funcE - line: 1, p:2
-    funcF - line: 1, out:3
+    funcF - line: 1, out:2
     funcE - line: 1, p:3
-    funcF - line: 1, out:4
+    funcF - line: 1, out:3
     funcE - line: 1, p:4
+    funcF - line: 1, out:4
+    funcE - line: 1, p:5
     funcF - line: 1, out:5
