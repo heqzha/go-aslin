@@ -71,9 +71,9 @@ func funcE(c *aslin.Context){
 		p, existed := c.Get("p")
 		if existed{
 			id := c.MustGet("id").(int)
+			p := p.(int) + 1
 			fmt.Printf("funcE - line: %d, p:%d\n", id, p)
-			intP := p.(int) + 1
-			c.Set("p", intP)
+			c.Set("p", p)
 			c.Pass()
 		}else{
 			// Abort current process
@@ -91,54 +91,64 @@ func funcF(c *aslin.Context){
 	fmt.Printf("funcF - line: %d, out:%d\n", id, p)
 }
 
-func TestAslin(t *testing.T){
-	fmt.Println("=====================================================================")
-	// Create new line
-	lIndex1 := aslin.InstFactory.NewLine(funcA, funcB, funcC)
-	lIndex2 := aslin.InstFactory.NewLine(funcA, funcB, funcB, funcB, funcC)
-
-	// Set parameters and run
-	aslin.InstFactory.Start(lIndex1, aslin.Params{
-		"id":1,
-	})
-	aslin.InstFactory.Start(lIndex2, aslin.Params{
-		"id":2,
-	})
-
-	// Clear all lines
-	defer aslin.InstFactory.Destory()
-
-	for {
-		//Wait for all lines stopped
-		if aslin.InstFactory.AreAllStop(){
-			break
-		}
+func funcG(c *aslin.Context){
+	id := c.MustGet("id").(int)
+	p := c.MustGet("p").(int)
+	for{
+		p *= 2
+		fmt.Printf("funcG - line: %d, out:%d\n", id, p)
+		time.Sleep(500 * time.Millisecond)
 	}
-	assert.True(t, true, "True is true")
 }
 
-func TestAslinRepeat(t *testing.T){
-	fmt.Println("=====================================================================")
-	// Create new line
-	lIndex1 := aslin.InstFactory.NewLine(funcA, funcB, funcD)
+// func TestAslin(t *testing.T){
+//	fmt.Println("=====================================================================")
+//	// Create new line
+//	lIndex1 := aslin.InstFactory.NewLine(funcA, funcB, funcC)
+//	lIndex2 := aslin.InstFactory.NewLine(funcA, funcB, funcB, funcB, funcC)
 
-	// Set parameters and run
-	aslin.InstFactory.Start(lIndex1, aslin.Params{
-		"id":1,
-		"repeat_max":5,
-	})
+//	// Set parameters and run
+//	aslin.InstFactory.Start(lIndex1, aslin.Params{
+//		"id":1,
+//	})
+//	aslin.InstFactory.Start(lIndex2, aslin.Params{
+//		"id":2,
+//	})
 
-	// Clear all lines
-	defer aslin.InstFactory.Destory()
+//	// Clear all lines
+//	defer aslin.InstFactory.Destory()
 
-	for {
-		//Wait for all lines stopped
-		if aslin.InstFactory.AreAllStop(){
-			break
-		}
-	}
-	assert.True(t, true, "True is true")
-}
+//	for {
+//		//Wait for all lines stopped
+//		if aslin.InstFactory.AreAllStop(){
+//			break
+//		}
+//	}
+//	assert.True(t, true, "True is true")
+// }
+
+// func TestAslinRepeat(t *testing.T){
+//	fmt.Println("=====================================================================")
+//	// Create new line
+//	lIndex1 := aslin.InstFactory.NewLine(funcA, funcB, funcD)
+
+//	// Set parameters and run
+//	aslin.InstFactory.Start(lIndex1, aslin.Params{
+//		"id":1,
+//		"repeat_max":5,
+//	})
+
+//	// Clear all lines
+//	defer aslin.InstFactory.Destory()
+
+//	for {
+//		//Wait for all lines stopped
+//		if aslin.InstFactory.AreAllStop(){
+//			break
+//		}
+//	}
+//	assert.True(t, true, "True is true")
+// }
 
 func TestAslinPass(t *testing.T){
 	fmt.Println("=====================================================================")
@@ -162,3 +172,26 @@ func TestAslinPass(t *testing.T){
 	}
 	assert.True(t, true, "True is true")
 }
+
+// func TestAslinPass2(t *testing.T){
+//	fmt.Println("=====================================================================")
+//	// Create new line
+//	lIndex1 := aslin.InstFactory.NewLine(funcA, funcE, funcG)
+
+//	// Set parameters and run
+//	aslin.InstFactory.Start(lIndex1, aslin.Params{
+//		"id":1,
+//		"loop_max":5,
+//	})
+
+//	// Clear all lines
+//	defer aslin.InstFactory.Destory()
+
+//	for {
+//		//Wait for all lines stopped
+//		if aslin.InstFactory.AreAllStop(){
+//			break
+//		}
+//	}
+//	assert.True(t, true, "True is true")
+// }
