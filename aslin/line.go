@@ -16,6 +16,12 @@ func (n *node)init(f HandlerFunc){
 	n.ch = make(chan *Context)
 }
 
+func (n *node)copy()(*node){
+	var cp = *n
+	cp.ch = make(chan *Context)
+	return &cp
+}
+
 func (n *node)destory(){
 	close(n.ch)
 
@@ -38,6 +44,14 @@ func (l *line)getHandler(index int)(f HandlerFunc){
 		return l.nodes[index].handler
 	}
 	return nil
+}
+
+func (l *line)copy()(*line){
+	var cp = new(line)
+	for _, n := range l.nodes{
+		cp.nodes = append(cp.nodes, n.copy())
+	}
+	return cp
 }
 
 func (l *line)add(f HandlerFunc){
