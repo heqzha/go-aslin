@@ -175,6 +175,8 @@ func main(){
 
 ## Example of Using Pass in Workflow
 ```go
+package main
+
 import(
     "fmt"
     "errors"
