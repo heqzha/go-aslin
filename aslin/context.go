@@ -69,6 +69,24 @@ func (c *Context) Next() {
 	}
 }
 
+// Pass should be used only inside middleware.
+// It passes a copy of Context to the next handler
+// and keeps the context for current handler
+func (c *Context) Pass() {
+	if !c.IsAborted(){
+		cp := c.Copy()
+		cp.index = c.index
+		cp.line = c.line
+		n, end := cp.line.next(int(cp.index))
+		if end{
+			// Reach the end of line
+			cp.Abort()
+			return
+		}
+		n.in(cp)
+	}
+}
+
 // Repeat should be used only inside middleware.
 // It repeats workflow from process i, but keeps all parameters
 func (c *Context) Repeat(i int){
