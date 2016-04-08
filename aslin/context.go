@@ -2,11 +2,20 @@ package aslin
 
 import (
 	"math"
+	"sync"
 )
 
 const abortIndex int8 = math.MaxInt8 / 2
 
 type Params map[string]interface{}
+
+func (p Params)copy()(Params){
+	var cp = make(Params)
+	for k, v := range p{
+		cp[k] = v
+	}
+	return cp
+}
 
 type Context struct {
 	params   Params
@@ -14,6 +23,7 @@ type Context struct {
 	index    int8
 
 	Errors   errors
+	mutex *sync.Mutex
 }
 
 /************************************/
@@ -21,13 +31,11 @@ type Context struct {
 /************************************/
 
 func (c *Context) init(params Params, l *line){
-	if params == nil{
-		c.params = make(Params)
-	}else{
-		c.params = params
-	}
+	c.params = params
 	c.line = l
 	c.index = 0
+	c.Errors = c.Errors[0:0]
+	c.mutex = &sync.Mutex{}
 	//Set first input params
 	c.line.do(int(c.index), c)
 }
@@ -37,12 +45,14 @@ func (c *Context) reset() {
 	c.line = nil
 	c.index = 0
 	c.Errors = c.Errors[0:0]
+	c.mutex = &sync.Mutex{}
 }
 
 // Copy returns a copy of the current context that can be safely used outside the request's scope.
 // This have to be used then the context has to be passed to a goroutine.
 func (c *Context) Copy() *Context {
 	var cp = *c
+	cp.params = c.params.copy()
 	cp.index = abortIndex
 	cp.line = nil
 	return &cp
@@ -156,18 +166,21 @@ func (c *Context) Error(err error) *Error {
 // Set is used to store a new key/value pair exclusivelly for this context.
 // It also lazy initializes  c.Keys if it was not used previously.
 func (c *Context) Set(key string, value interface{}) {
+	c.mutex.Lock()
 	if c.params == nil {
 		c.params = make(Params)
 	}
 	c.params[key] = value
+	c.mutex.Unlock()
 }
 
 // Get returns the value for the given key, ie: (value, true).
 // If the value does not exists it returns (nil, false)
 func (c *Context) Get(key string) (value interface{}, exists bool) {
 	if c.params != nil {
+		c.mutex.Lock()
 		value, exists = c.params[key]
-
+		c.mutex.Unlock()
 	}
 	return
 }
